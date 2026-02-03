@@ -62,8 +62,13 @@ pub fn handle_service_completion(entry: &mut Entry) {
 }
 
 fn log(entry: &mut Entry) {
+    let preempted_str = if entry.preempted_service_time > 0.0 {
+        format!("{:.2}", entry.preempted_service_time)
+    } else {
+        "-".to_string()
+    };
     println!(
-        "{:6} | {:8} | {:10} | {:3} | {:6} | {:8} | {:15} | {:20} |",
+        "{:6.2} | {:8.2} | {:10.2} | {:3} | {:6} | {:8.2} | {:1} | {:<22} |",
         entry.mc,
         entry.rtcl,
         entry.non_rtcl,
@@ -71,18 +76,19 @@ fn log(entry: &mut Entry) {
         entry.n_nonrt,
         entry.scl,
         entry.s,
-        entry.preempted_service_time
+        preempted_str
     );
 }
 
 pub fn run(entry: &mut Entry, max_time: f64) {
-    println!("{}", "=".repeat(100));
+    let table_width = 97;
+    println!("{}", "=".repeat(table_width));
     println!(
-        "{:6} | {:8} | {:10} | {:3} | {:6} | {:8} | {:15} | {:20} |",
-        "MC", "RTCL", "Non RTCL", "nRT", "nNonRT", "SCL", "S", "Preempted Service Time"
+        "{:>6} | {:>8} | {:>10} | {:>3} | {:>6} | {:>8} | {:<3} | {:<22} |",
+        "MC", "RTCL", "nonRTCL", "nRT", "nnonRT", "SCL", "S", "preempted service time"
     );
     log(entry);
-    println!("{}", "=".repeat(100));
+    println!("{}", "=".repeat(table_width));
 
     while entry.mc < max_time {
         let mut next_event_time = entry.rtcl.min(entry.non_rtcl);
