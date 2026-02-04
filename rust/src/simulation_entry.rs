@@ -14,4 +14,5 @@ pub struct Entry {
     pub n_nonrt: i64,
     pub s: ServiceType,
     pub preempted_service_time: f64,
+    pub is_exponential: bool,
 }

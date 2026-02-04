@@ -1,10 +1,20 @@
+use rand::Rng;
 use std::f64::{EPSILON, MAX};
 
 use crate::{service_type::ServiceType, simulation_entry::Entry};
 
+fn generate_inter_arrival_time_or_service_time(entry: &mut Entry, mean_time: f64) -> f64 {
+    if entry.is_exponential {
+        let random_number: f64 = rand::thread_rng().r#gen();
+        return -mean_time * random_number.ln();
+    }
+    mean_time
+}
+
 pub fn handle_arrival_rt(entry: &mut Entry) {
     entry.mc = entry.rtcl;
-    entry.rtcl = entry.mc + entry.rt_inter_interval;
+    entry.rtcl =
+        entry.mc + generate_inter_arrival_time_or_service_time(entry, entry.rt_inter_interval);
     entry.n_rt += 1;
     if entry.n_rt == 1 {
         match entry.s {
@@ -22,7 +32,7 @@ pub fn handle_arrival_rt(entry: &mut Entry) {
 }
 
 fn rt_completion(entry: &mut Entry) {
-    entry.scl = entry.mc + entry.rt_service;
+    entry.scl = entry.mc + generate_inter_arrival_time_or_service_time(entry, entry.rt_service);
     entry.n_rt -= 1;
     entry.s = ServiceType::RealTime;
 }
@@ -30,7 +40,8 @@ fn rt_completion(entry: &mut Entry) {
 pub fn handle_arrival_nrt(entry: &mut Entry) {
     entry.mc = entry.non_rtcl;
     entry.n_nonrt += 1;
-    entry.non_rtcl = entry.mc + entry.nrt_inter_interval;
+    entry.non_rtcl =
+        entry.mc + generate_inter_arrival_time_or_service_time(entry, entry.nrt_inter_interval);
 
     if entry.n_nonrt == 1 {
         if matches!(entry.s, ServiceType::Idle) {
@@ -40,7 +51,7 @@ pub fn handle_arrival_nrt(entry: &mut Entry) {
 }
 
 pub fn nrt_completion(entry: &mut Entry, service_time: f64) {
-    entry.scl = entry.mc + service_time;
+    entry.scl = entry.mc + generate_inter_arrival_time_or_service_time(entry, service_time);
     entry.n_nonrt -= 1;
     entry.s = ServiceType::NonRealTime;
 }
